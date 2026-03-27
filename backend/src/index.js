@@ -4,6 +4,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const logger = require('./utils/logger');
 
+// Import routes
+const authRoutes = require('./routes/auth');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -27,18 +30,28 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// TODO: Add route imports
-// const authRoutes = require('./routes/auth');
+// API Routes
+app.use('/api/auth', authRoutes);
+
+// TODO: Add more routes
 // const eventRoutes = require('./routes/events');
 // const userRoutes = require('./routes/users');
-
-// app.use('/api/auth', authRoutes);
 // app.use('/api/events', eventRoutes);
 // app.use('/api/users', userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   logger.error(err);
+  
+  // Handle specific error types
+  if (err.name === 'UnauthorizedError') {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({ error: 'Validation failed', details: err.details });
+  }
+
   res.status(err.status || 500).json({
     error: {
       message: err.message || 'Internal Server Error',
