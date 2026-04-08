@@ -212,18 +212,56 @@ class MockQueryBuilder {
   }
 
   count(columnName = '*') {
-    const table = storage[this.tableName] || new Map();
-    let total = 0;
+    // Return a QueryBuilder-like object that supports .first()
+    const countResult = new MockQueryBuilder(this.tableName);
+    countResult.whereConditions = [...this.whereConditions];
     
-    for (let [key, record] of table) {
-      if (this._matchesConditions(record)) {
-        total++;
+    // Add first() method to return count result
+    const originalFirst = countResult.first.bind(countResult);
+    countResult.first = function() {
+      const table = storage[this.tableName] || new Map();
+      let total = 0;
+      
+      for (let [key, record] of table) {
+        if (this._matchesConditions(record)) {
+          total++;
+        }
       }
-    }
+      
+      const result = { count: total };
+      result[columnName] = total;
+      return Promise.resolve(result);
+    };
     
-    const result = [{ count: total }];
-    result[0][columnName] = total;
-    return Promise.resolve(result);
+    // Return promise that resolves to count QueryBuilder for chaining
+    return countResult;
+  }
+
+  clone() {
+    // Create a shallow copy of the query builder
+    const cloned = new MockQueryBuilder(this.tableName);
+    cloned.whereConditions = [...this.whereConditions];
+    cloned.selectFields = [...this.selectFields];
+    cloned.joinedTables = [...this.joinedTables];
+    cloned.orderByInfo = this.orderByInfo;
+    cloned.limitInfo = this.limitInfo;
+    cloned.offsetInfo = this.offsetInfo;
+    cloned.insertData = this.insertData;
+    cloned.updateData = this.updateData;
+    return cloned;
+  }
+
+  groupBy(...columns) {
+    // Mock groupBy - in tests we won't do actual grouping
+    this.groupByColumns = columns;
+    return this;
+  }
+
+  having(column, operator, value) {
+    // Mock having clause
+    this.havingConditions = this.havingConditions || [];
+    this.havingConditions.push({ column, operator, value });
+    return this;
   }
 
   pluck(column) {

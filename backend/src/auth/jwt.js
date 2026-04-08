@@ -45,7 +45,11 @@ class JWTService {
    */
   signAccessToken(payload) {
     try {
-      const token = jwt.sign(payload, this.privateKey, {
+      // Add unique JWT ID and timestamp to ensure token uniqueness
+      const token = jwt.sign({
+        ...payload,
+        jti: `${payload.user_id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      }, this.privateKey, {
         algorithm: 'RS256',
         expiresIn: this.accessTokenExpiry,
         issuer: 'eventhub-api',
@@ -66,7 +70,12 @@ class JWTService {
    */
   signRefreshToken(payload) {
     try {
-      const token = jwt.sign(payload, this.privateKey, {
+      // Add unique JWT ID and timestamp to ensure token uniqueness
+      const token = jwt.sign({
+        ...payload,
+        jti: `${payload.user_id}-refresh-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        tokenType: 'refresh',
+      }, this.privateKey, {
         algorithm: 'RS256',
         expiresIn: this.refreshTokenExpiry,
         issuer: 'eventhub-api',

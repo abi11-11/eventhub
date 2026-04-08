@@ -43,10 +43,10 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api', bookingRoutes); // Bookings (must be before userRoutes to intercept /user/bookings)
+app.use('/api', reviewRoutes); // Reviews are nested under events
 app.use('/api/user', userRoutes);
 app.use('/api/events', eventRoutes);
-app.use('/api', bookingRoutes); // Bookings are nested under events
-app.use('/api', reviewRoutes); // Reviews are nested under events
 
 // 404 handler (before error handler)
 app.use((req, res) => {
