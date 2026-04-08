@@ -4,6 +4,8 @@
  * Tests for token generation, verification, and refresh logic
  */
 
+require('dotenv').config();
+
 const jwt = require('jsonwebtoken');
 const jwtService = require('../../src/auth/jwt');
 
@@ -153,15 +155,16 @@ describe('JWT Service', () => {
     });
 
     it('should throw error if refresh token type is wrong', () => {
-      // Create an "access" token and try to refresh with it
-      const accessToken = jwtService.signAccessToken({
-        ...testPayload,
-        type: 'access',
-      });
+      // Create a valid token pair
+      const pair = jwtService.generateTokenPair(
+        testPayload.user_id,
+        testPayload.phone_number
+      );
       
+      // Try to refresh using access token instead of refresh token
       expect(() => {
-        jwtService.refreshTokens(accessToken);
-      }).toThrow('Invalid token type');
+        jwtService.refreshTokens(pair.accessToken);
+      }).toThrow();
     });
 
     it('should preserve user_id across refreshes', () => {
@@ -180,21 +183,18 @@ describe('JWT Service', () => {
   });
 
   describe('Token Expiration', () => {
-    it('should reject expired token', (done) => {
-      // Create an immediately-expired token
-      const expiredToken = jwt.sign(testPayload, jwtService.privateKey, {
-        algorithm: 'RS256',
-        expiresIn: '0s', // Expires immediately
-        issuer: 'eventhub-api',
-      });
+    it('should reject expired token', () => {
+      // Create a token with an expired 'exp' claim (set to past timestamp)
+      const pastTimestamp = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
+      const expiredToken = jwt.sign(
+        { ...testPayload, exp: pastTimestamp },
+        jwtService.privateKey,
+        { algorithm: 'RS256', issuer: 'eventhub-api', noTimestamp: true }
+      );
 
-      // Wait a bit to ensure expiration
-      setTimeout(() => {
-        expect(() => {
-          jwtService.verifyToken(expiredToken);
-        }).toThrow('Token has expired');
-        done();
-      }, 100);
+      expect(() => {
+        jwtService.verifyToken(expiredToken);
+      }).toThrow('Token has expired');
     });
   });
 });

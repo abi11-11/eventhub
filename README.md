@@ -3,6 +3,10 @@
 **Version**: 0.1.0 (Sprint 0 - Foundation)  
 **Status**: Development (Sprint 0 In Progress)
 
+[![Tests](https://github.com/YOUR_ORG/eventhub-app/actions/workflows/tests.yml/badge.svg)](https://github.com/YOUR_ORG/eventhub-app/actions/workflows/tests.yml)
+[![Build](https://github.com/YOUR_ORG/eventhub-app/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/YOUR_ORG/eventhub-app/actions/workflows/build.yml)
+[![Coverage](https://codecov.io/gh/YOUR_ORG/eventhub-app/branch/main/graph/badge.svg)](https://codecov.io/gh/YOUR_ORG/eventhub-app)
+
 ## Project Overview
 
 EventHub is a dynamic, customizable event hosting and booking platform for discovering, hosting, and participating in events—from fitness activities to niche experiences, all with host-driven UI customization.
@@ -200,8 +204,51 @@ cp backend/.env.example backend/.env
 ### DevOps
 - **Containerization**: Docker
 - **Orchestration**: Docker Compose
-- **CI/CD**: GitHub Actions (Coming)
-- **Deployment**: AWS ECS (Coming)
+- **CI/CD**: GitHub Actions (3 workflows)
+- **Deployment**: AWS ECS (Fargate)
+- **Container Registry**: AWS ECR
+- **Secrets Management**: AWS Secrets Manager
+
+---
+
+## CI/CD Pipeline
+
+The project includes automated CI/CD workflows:
+
+### 📋 Tests & Linting (`tests.yml`)
+- **Trigger**: Pull requests and pushes to main/develop
+- **Tests**: Jest integration tests with PostgreSQL (66/91 passing)
+- **Linting**: ESLint + Prettier code quality checks
+- **Coverage**: Reports uploaded to Codecov
+- **Result**: PR comments with test results
+
+### 🐳 Docker Build & Push (`build.yml`)
+- **Trigger**: Pushes to main (after PR merge)
+- **Build**: Multi-stage Docker build with Docker Buildx
+- **Push**: Automatic push to AWS ECR
+- **Security**: Trivy vulnerability scan
+- **Deploy**: Auto-deploy to staging environment
+- **Caching**: GitHub buildx cache layer support
+
+### 🚀 Production Deploy (`deploy.yml`)
+- **Trigger**: Manual workflow (or on release tag)
+- **Deploy**: Updates ECS task definitions
+- **Health Checks**: Validates /health endpoint
+- **Smoke Tests**: Basic API validation
+- **Rollback**: Automatic rollback on failure
+- **Notifications**: Slack integration
+
+### Setup Instructions
+See [.aws/CI-CD-SETUP.md](.aws/CI-CD-SETUP.md) for:
+- AWS resource creation (ECR, ECS, RDS)
+- IAM role setup for GitHub Actions
+- GitHub secrets configuration
+- Deployment testing and monitoring
+
+### Quick Links
+- [Workflows Directory](.github/workflows)
+- [Workflow Documentation](.github/workflows/README.md)
+- [Task Definition Template](.aws/task-definition.json)
 
 ---
 
@@ -227,10 +274,10 @@ cp backend/.env.example backend/.env
 - Persist auth tokens
 - Hydrate on app startup
 
-### Story 0.5: CI/CD Pipeline ⏳
-- GitHub Actions workflow
-- Docker image builds
-- ECR push + ECS deployment
+### Story 0.5: CI/CD Pipeline ✅
+- GitHub Actions workflows (tests, build, deploy)
+- Docker image builds and ECR push
+- AWS ECS deployment automation
 
 ---
 

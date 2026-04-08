@@ -4,8 +4,16 @@ const cors = require('cors');
 const helmet = require('helmet');
 const logger = require('./utils/logger');
 
+// Import middleware
+const responseFormatter = require('./middleware/responseFormatter');
+const errorHandler = require('./middleware/errorHandler');
+
 // Import routes
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
+const eventRoutes = require('./routes/events');
+const bookingRoutes = require('./routes/bookings');
+const reviewRoutes = require('./routes/reviews');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,49 +33,36 @@ app.use((req, res, next) => {
   next();
 });
 
+// Response formatter middleware
+app.use(responseFormatter);
+
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.sendSuccess({ status: 'ok' });
 });
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api', bookingRoutes); // Bookings are nested under events
+app.use('/api', reviewRoutes); // Reviews are nested under events
 
-// TODO: Add more routes
-// const eventRoutes = require('./routes/events');
-// const userRoutes = require('./routes/users');
-// app.use('/api/events', eventRoutes);
-// app.use('/api/users', userRoutes);
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  logger.error(err);
-  
-  // Handle specific error types
-  if (err.name === 'UnauthorizedError') {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  
-  if (err.name === 'ValidationError') {
-    return res.status(400).json({ error: 'Validation failed', details: err.details });
-  }
-
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message || 'Internal Server Error',
-      status: err.status || 500,
-    },
-  });
-});
-
-// 404 handler
+// 404 handler (before error handler)
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  const error = new Error('Route not found');
+  error.statusCode = 404;
+  throw error;
 });
 
-// Server startup
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT} (Node v${process.version})`);
-});
+// Error handling middleware (must be last)
+app.use(errorHandler);
+
+// Server startup (only if this file is run directly, not imported by tests)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT} (Node v${process.version})`);
+  });
+}
 
 module.exports = app;

@@ -24,7 +24,7 @@ class FirebaseAuthService {
    */
   initializeFirebase() {
     try {
-      if (process.env.NODE_ENV === 'development' && !process.env.FIREBASE_PROJECT_ID) {
+      if ((process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') && !process.env.FIREBASE_PROJECT_ID) {
         logger.warn('Firebase not configured. Running in mock mode.');
         this.initialized = false;
         return;
@@ -124,9 +124,9 @@ class FirebaseAuthService {
    */
   async login(idToken) {
     try {
-      // In development mode without Firebase, allow mock token
-      if (!this.initialized && process.env.NODE_ENV === 'development') {
-        logger.warn('Using mock authentication in development mode');
+      // In development/test mode without Firebase, allow mock token
+      if (!this.initialized && (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test')) {
+        logger.warn('Using mock authentication in development/test mode');
         
         // Extract phone from mock token (format: mock:+919999999991)
         const phoneNumber = idToken.replace('mock:', '');

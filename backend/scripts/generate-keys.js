@@ -15,13 +15,13 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const crypto = require('crypto');
 
 const ENV_FILE = path.join(__dirname, '../.env');
 const KEYS_DIR = path.join(__dirname, '../.keys');
 
 console.log('\n🔐 EventHub JWT Key Pair Generator\n');
-console.log('=' .repeat(50));
+console.log('='.repeat(50));
 
 try {
   // Create .keys directory if it doesn't exist
@@ -34,25 +34,26 @@ try {
 
   // Generate private key
   console.log('\n📝 Generating RSA private key...');
-  execSync(
-    `openssl genrsa -out "${privateKeyPath}" 2048`,
-    { stdio: 'inherit' }
-  );
+  const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: {
+      type: 'spki',
+      format: 'pem'
+    },
+    privateKeyEncoding: {
+      type: 'pkcs8',
+      format: 'pem'
+    }
+  });
   console.log('✅ Private key generated');
 
-  // Generate public key from private key
-  console.log('\n📝 Generating RSA public key from private key...');
-  execSync(
-    `openssl rsa -in "${privateKeyPath}" -pubout -out "${publicKeyPath}"`,
-    { stdio: 'inherit' }
-  );
+  // Write keys to files
+  console.log('\n📝 Writing keys to files...');
+  fs.writeFileSync(privateKeyPath, privateKey);
+  fs.writeFileSync(publicKeyPath, publicKey);
   console.log('✅ Public key generated');
 
-  // Read the keys
-  const privateKey = fs.readFileSync(privateKeyPath, 'utf-8');
-  const publicKey = fs.readFileSync(publicKeyPath, 'utf-8');
-
-  // Escape the keys for use in .env (handle newlines)
+  // Prepare keys for .env (escape newlines)
   const privateKeyEnv = privateKey.replace(/\n/g, '\\n');
   const publicKeyEnv = publicKey.replace(/\n/g, '\\n');
 
@@ -65,7 +66,8 @@ try {
     envContent = envContent.replace(/JWT_PUBLIC_KEY=.*/s, '');
 
     // Add new keys
-    envContent += `\n# JWT Keys (generated $(date))\n`;
+    const generatedDate = new Date().toISOString();
+    envContent += `\n# JWT Keys (generated ${generatedDate})\n`;
     envContent += `JWT_PRIVATE_KEY="${privateKeyEnv}"\n`;
     envContent += `JWT_PUBLIC_KEY="${publicKeyEnv}"\n`;
 
@@ -87,9 +89,5 @@ try {
 
 } catch (error) {
   console.error('\n❌ Error generating keys:', error.message);
-  console.error('\n💡 Make sure you have OpenSSL installed:');
-  console.error('   macOS: brew install openssl');
-  console.error('   Linux: sudo apt-get install openssl');
-  console.error('   Windows: Download from https://slproweb.com/products/Win32OpenSSL.html\n');
   process.exit(1);
 }

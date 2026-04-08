@@ -8,7 +8,7 @@
  * - Protected route access
  */
 
-const jwtService = require('./jwt');
+const jwtService = require('../auth/jwt');
 const logger = require('../utils/logger');
 
 /**

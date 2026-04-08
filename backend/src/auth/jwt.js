@@ -12,14 +12,30 @@ const logger = require('../utils/logger');
 
 class JWTService {
   constructor() {
-    this.privateKey = process.env.JWT_PRIVATE_KEY?.replace(/\\n/g, '\n');
-    this.publicKey = process.env.JWT_PUBLIC_KEY?.replace(/\\n/g, '\n');
-    this.accessTokenExpiry = process.env.JWT_EXPIRE || '7d';
-    this.refreshTokenExpiry = process.env.REFRESH_TOKEN_EXPIRE || '30d';
+    const crypto = require('crypto');
+    const privateKeyPem = process.env.JWT_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    const publicKeyPem = process.env.JWT_PUBLIC_KEY?.replace(/\\n/g, '\n');
 
-    if (!this.privateKey || !this.publicKey) {
+    if (!privateKeyPem || !publicKeyPem) {
       throw new Error('JWT_PRIVATE_KEY and JWT_PUBLIC_KEY environment variables must be set');
     }
+
+    // Create KeyObjects for RS256 (asymmetric)
+    try {
+      this.privateKey = crypto.createPrivateKey({
+        key: privateKeyPem,
+        format: 'pem',
+      });
+      this.publicKey = crypto.createPublicKey({
+        key: publicKeyPem,
+        format: 'pem',
+      });
+    } catch (error) {
+      throw new Error(`Failed to load JWT keys: ${error.message}`);
+    }
+
+    this.accessTokenExpiry = process.env.JWT_EXPIRE || '7d';
+    this.refreshTokenExpiry = process.env.REFRESH_TOKEN_EXPIRE || '30d';
   }
 
   /**
@@ -129,12 +145,20 @@ class JWTService {
       const decoded = this.verifyToken(refreshToken);
 
       if (decoded.type !== 'refresh') {
-        throw new Error('Invalid token type: expected refresh token');
+        const err = new Error('Invalid token type');
+        logger.error('Refresh token has wrong type:', decoded.type);
+        throw err;
       }
 
       // Generate new token pair
       return this.generateTokenPair(decoded.user_id, decoded.phone_number);
     } catch (error) {
+      // Re-throw specific errors without wrapping
+      if (error.message.includes('Invalid token type') || 
+          error.message.includes('Token has expired') || 
+          error.message.includes('Invalid token')) {
+        throw error;
+      }
       logger.error('Error refreshing token:', error);
       throw new Error('Failed to refresh token');
     }
