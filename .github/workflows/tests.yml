@@ -74,6 +74,8 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: postgres
           NODE_ENV: test
+          JWT_PRIVATE_KEY: ${{ secrets.JWT_PRIVATE_KEY }}
+          JWT_PUBLIC_KEY: ${{ secrets.JWT_PUBLIC_KEY }}
         run: npm test -- --coverage
 
       - name: Upload coverage reports
