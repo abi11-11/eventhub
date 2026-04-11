@@ -72,7 +72,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const tags = '${{ steps.meta.outputs.tags }}';
+            const tags = `${{ steps.meta.outputs.tags }}`;
             const imageTag = tags.split('\n')[0];
             github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
