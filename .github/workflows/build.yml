@@ -120,6 +120,10 @@ jobs:
     needs: security-scan
     if: success()
 
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
