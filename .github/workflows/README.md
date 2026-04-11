@@ -127,8 +127,8 @@ Must be set in Settings > Secrets and variables > Actions
 
 | Secret | Example | Where Used |
 |--------|---------|-----------|
-| `AWS_ROLE_ARN` | `arn:aws:iam::123456:role/github-actions-eventhub` | build.yml, deploy.yml |
-| `AWS_ECR_REGISTRY` | `123456.dkr.ecr.us-east-1.amazonaws.com` | build.yml |
+| `AWS_ROLE_ARN` | `arn:aws:iam::385080556067:role/github-actions-eventhub` | build.yml, deploy.yml |
+| `AWS_ECR_REGISTRY` | `385080556067.dkr.ecr.ap-south-2.amazonaws.com` | build.yml |
 | `SLACK_WEBHOOK` | `https://hooks.slack.com/services/...` | build.yml, deploy.yml (optional) |
 
 ### Task Definition Secrets (AWS)
