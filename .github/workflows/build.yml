@@ -149,6 +149,7 @@ jobs:
       - name: Notify deployment success
         uses: 8398a7/action-slack@v3
         if: success()
+        continue-on-error: true
         with:
           status: custom
           custom_payload: |
@@ -166,6 +167,7 @@ jobs:
       - name: Notify deployment failure
         uses: 8398a7/action-slack@v3
         if: failure()
+        continue-on-error: true
         with:
           status: custom
           custom_payload: |
