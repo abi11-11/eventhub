@@ -72,12 +72,14 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            const tags = '${{ steps.meta.outputs.tags }}';
+            const imageTag = tags.split('\n')[0];
             github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
               repo: context.repo.repo,
               event_type: 'deploy-staging',
               client_payload: {
-                image_tag: '${{ steps.meta.outputs.tags }}'.split('\n')[0],
+                image_tag: imageTag,
                 sha: context.sha
               }
             }).catch(err => console.log('Dispatch event skipped:', err.message));
@@ -120,7 +122,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Update ECS task definition
         id: task-def
