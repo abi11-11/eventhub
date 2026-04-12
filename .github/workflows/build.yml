@@ -145,17 +145,17 @@ jobs:
 
       - name: Update ECS task definition
         id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        uses: aws-actions/amazon-ecs-render-task-definition@v2
         with:
           task-definition: .aws/task-definition.json
           container-name: eventhub-api
           image: ${{ secrets.AWS_ECR_REGISTRY }}/eventhub-api:main-${{ github.sha }}
 
       - name: Deploy to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: eventhub-api-staging
+          service: eventhub-staging/eventhub-api-staging
           cluster: eventhub-staging
           wait-for-service-stability: true
 
