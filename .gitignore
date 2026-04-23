@@ -6,7 +6,7 @@ yarn-error.log
 *.tgz
 
 # Environment Variables
-.env
+# .env
 .env.local
 .env.*.local
 .env.vault
@@ -96,9 +96,9 @@ venv/
 .cursor/
 .gemini/
 
-COMPONENT_SPECS.md
-DATABASE_SCHEMA.md
+# COMPONENT_SPECS.md
+# DATABASE_SCHEMA.md
 
-STORY_0_1_COMPLETION.md
-STORY_0_2_COMPLETION.md
-STORY_0_3_COMPLETION.md
+# STORY_0_1_COMPLETION.md
+# STORY_0_2_COMPLETION.md
+# STORY_0_3_COMPLETION.md
