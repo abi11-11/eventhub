@@ -1,8 +1,59 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import firebaseService from '../services/firebase-service';
 
 export default function SignupScreen({ navigation }) {
-  const [phoneNumber, setPhoneNumber] = React.useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handlePhoneChange = (value) => {
+    const cleaned = value.replace(/[^\d+]/g, '');
+    let formatted = cleaned;
+    if (cleaned && !cleaned.startsWith('+')) {
+      formatted = '+' + cleaned;
+    }
+    if (formatted.length <= 15) {
+      setPhoneNumber(formatted);
+      setError('');
+    }
+  };
+
+  const validatePhoneNumber = (phone) => {
+    const e164Regex = /^\+[1-9]\d{1,14}$/;
+    return e164Regex.test(phone);
+  };
+
+  const handleSendOTP = async () => {
+    if (!phoneNumber.trim()) {
+      setError('Please enter your phone number');
+      return;
+    }
+
+    if (!validatePhoneNumber(phoneNumber)) {
+      setError('Please enter a valid phone number (e.g., +919999999991)');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      console.log('🔵 SignupScreen: Initiating OTP flow...');
+      const confirmationResult = await firebaseService.sendOTP(phoneNumber);
+      console.log('✅ SignupScreen: OTP sent successfully');
+      
+      navigation.navigate('OTP', {
+        phoneNumber,
+        confirmationResult,
+      });
+    } catch (err) {
+      console.error('❌ SignupScreen: OTP send failed', err);
+      setError(err.message || 'Failed to send OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -12,15 +63,32 @@ export default function SignupScreen({ navigation }) {
 
         <TextInput
           style={styles.input}
-          placeholder="Enter your phone number"
+          placeholder="Enter your phone number (e.g., +15550000000)"
           placeholderTextColor="#999"
           value={phoneNumber}
-          onChangeText={setPhoneNumber}
+          onChangeText={handlePhoneChange}
           keyboardType="phone-pad"
+          editable={!isLoading}
+          returnKeyType="done"
+          onSubmitEditing={handleSendOTP}
         />
 
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Get Started</Text>
+        {error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+
+        <TouchableOpacity 
+          style={[styles.button, (isLoading || !phoneNumber) && styles.buttonDisabled]} 
+          onPress={handleSendOTP}
+          disabled={isLoading || !phoneNumber}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Get Started</Text>
+          )}
         </TouchableOpacity>
 
         <Text style={styles.loginText}>
@@ -79,6 +147,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
   loginText: {
     fontSize: 14,
     color: '#666',
@@ -86,5 +157,17 @@ const styles = StyleSheet.create({
   loginLink: {
     color: '#007AFF',
     fontWeight: 'bold',
+  },
+  errorContainer: {
+    backgroundColor: '#fadbd8',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    width: '100%',
+  },
+  errorText: {
+    color: '#c0392b',
+    fontSize: 13,
+    textAlign: 'center',
   },
 });

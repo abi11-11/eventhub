@@ -14,7 +14,9 @@ LogBox.ignoreLogs([
  * Initializes Firebase and renders the navigation stack
  */
 export default function App() {
+  console.log('App render start');
   useEffect(() => {
+    console.log('App useEffect run');
     // Initialize Firebase on app startup
     try {
       firebaseService.initializeFirebase();
@@ -24,6 +26,7 @@ export default function App() {
     }
   }, []);
 
+  console.log('App returning UI');
   return (
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.container}>

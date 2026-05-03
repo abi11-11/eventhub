@@ -201,11 +201,11 @@ export default function OTPScreen({ navigation, route }) {
         </View>
 
         {/* Error Message */}
-        {error && (
+        {error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
           </View>
-        )}
+        ) : null}
 
         {/* Verify Button */}
         <TouchableOpacity

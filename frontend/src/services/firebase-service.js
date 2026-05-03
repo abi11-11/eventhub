@@ -24,7 +24,7 @@ const firebaseConfig = {
 };
 
 // Check if we're in mock mode
-const MOCK_MODE = Constants.expoConfig?.extra?.enableMockAuth || process.env.REACT_APP_ENABLE_MOCK_AUTH === 'true';
+const MOCK_MODE = Constants.expoConfig?.extra?.enableMockAuth || process.env.REACT_APP_ENABLE_MOCK_AUTH === 'true' || !firebaseConfig.apiKey;
 const MOCK_PHONE = Constants.expoConfig?.extra?.mockPhoneNumber || process.env.REACT_APP_MOCK_PHONE_NUMBER || '+919999999991';
 
 let firebaseApp;

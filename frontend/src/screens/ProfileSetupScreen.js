@@ -204,11 +204,11 @@ export default function ProfileSetupScreen({ navigation }) {
         </View>
 
         {/* Error Message */}
-        {error && (
+        {error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
           </View>
-        )}
+        ) : null}
 
         {/* Complete Button */}
         <TouchableOpacity

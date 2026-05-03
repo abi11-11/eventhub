@@ -103,15 +103,19 @@ function AppStack() {
  * Uses Zustand auth state to determine which stack to show
  */
 export function RootNavigator() {
+  console.log('RootNavigator render start');
   const { isLoading, isAuthenticated, initializeAuth, user } = useAuthStore();
+  console.log('RootNavigator state:', { isLoading, isAuthenticated, user: !!user });
 
   // Initialize auth state on mount
   useEffect(() => {
+    console.log('RootNavigator useEffect run - initializeAuth');
     initializeAuth();
   }, []);
 
   // Show splash screen while checking auth state
   if (isLoading) {
+    console.log('RootNavigator returning SplashScreen');
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <SplashScreen />
@@ -119,6 +123,7 @@ export function RootNavigator() {
     );
   }
 
+  console.log('RootNavigator returning NavigationContainer');
   return (
     <NavigationContainer>
       {isAuthenticated && user ? (
