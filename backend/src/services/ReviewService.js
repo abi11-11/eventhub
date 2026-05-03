@@ -222,6 +222,11 @@ class ReviewService {
       const skip = pagination.skip || 0;
       const limit = Math.min(pagination.limit || 20, 100);
 
+      const user = await db('users').where('id', userId).first();
+      if (!user) {
+        throw new Error('User not found');
+      }
+
       const total = await db('reviews')
         .where('host_id', userId)
         .count('* as total')
@@ -297,6 +302,74 @@ class ReviewService {
   }
 
   /**
+   * Update review (author-only)
+   * @param {string} reviewId - Review UUID
+   * @param {string} userId - Reviewer UUID
+   * @param {Object} data - Update data
+   * @returns {Promise<Object>} Updated review
+   */
+  async updateReview(reviewId, userId, data) {
+    try {
+      const review = await db('reviews').where('id', reviewId).first();
+
+      if (!review) {
+        throw new Error('Review not found');
+      }
+
+      if (review.reviewer_id !== userId) {
+        throw new Error('Not authorized to update this review');
+      }
+
+      await db('reviews').where('id', reviewId).update({
+        ...data,
+        updated_at: new Date(),
+      });
+
+      // Update host reputation asynchronously
+      this.updateHostReputation(review.host_id).catch(err => {
+        logger.error(`Failed to update reputation after review update: ${err.message}`);
+      });
+
+      return this.getReviewById(reviewId);
+    } catch (error) {
+      logger.error(`Error updating review ${reviewId}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete review (author-only)
+   * @param {string} reviewId - Review UUID
+   * @param {string} userId - Reviewer UUID
+   * @returns {Promise<void>}
+   */
+  async deleteReview(reviewId, userId) {
+    try {
+      const review = await db('reviews').where('id', reviewId).first();
+
+      if (!review) {
+        throw new Error('Review not found');
+      }
+
+      if (review.reviewer_id !== userId) {
+        throw new Error('Not authorized to delete this review');
+      }
+
+      await db('reviews').where('id', reviewId).del();
+
+      // Update host reputation asynchronously
+      this.updateHostReputation(review.host_id).catch(err => {
+        logger.error(`Failed to update reputation after review deletion: ${err.message}`);
+      });
+
+      logger.info(`Review deleted: ${reviewId}`);
+    } catch (error) {
+      logger.error(`Error deleting review ${reviewId}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Update host reputation score based on reviews
    * @param {string} hostId - Host user UUID
    * @returns {Promise<void>}
@@ -318,7 +391,7 @@ class ReviewService {
       const average = ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
 
       await db('users').where('id', hostId).update({
-        reputation_score: saveFloat(average.toFixed(1)),
+        reputation_score: parseFloat(average.toFixed(1)),
         updated_at: new Date(),
       });
 

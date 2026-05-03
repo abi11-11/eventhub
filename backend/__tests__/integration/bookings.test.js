@@ -115,7 +115,7 @@ describe('Booking Routes', () => {
         .end((err, res) => {
           if (err) return done(err);
           expect(res.body.success).toBe(true);
-          expect(res.body.data.status).toBe('confirmed');
+          expect(res.body.data.rsvp_status).toBe('confirmed');
           done();
         });
     });

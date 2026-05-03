@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, LogBox } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Provider as PaperProvider } from 'react-native-paper';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import firebaseService from './src/services/firebase-service';
 
@@ -29,9 +30,11 @@ export default function App() {
   console.log('App returning UI');
   return (
     <GestureHandlerRootView style={styles.container}>
-      <View style={styles.container}>
-        <RootNavigator />
-      </View>
+      <PaperProvider>
+        <View style={styles.container}>
+          <RootNavigator />
+        </View>
+      </PaperProvider>
     </GestureHandlerRootView>
   );
 }

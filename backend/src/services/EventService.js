@@ -18,6 +18,9 @@ class EventService {
     try {
       const eventId = uuidv4();
 
+      // Bug 4 fix: location is optional per the Joi schema
+      const location = eventData.location || {};
+
       const event = {
         id: eventId,
         host_id: hostId,
@@ -26,16 +29,16 @@ class EventService {
         description: eventData.description,
         cover_image_url: eventData.cover_image_url,
         theme_config: eventData.theme ? JSON.stringify(eventData.theme) : null,
-        address: eventData.location.address,
-        latitude: eventData.location.latitude,
-        longitude: eventData.location.longitude,
-        venue: eventData.location.venue_name,
+        address: location.address || null,
+        latitude: location.latitude || null,
+        longitude: location.longitude || null,
+        venue: location.venue_name || null,
         skill_level: eventData.skill_level,
-        start_time: this.combineDateTime(eventData.event_date, eventData.start_time),
-        end_time: this.combineDateTime(eventData.event_date, eventData.end_time),
+        start_time: this.combineDateTime(eventData.start_date || eventData.event_date, eventData.start_time),
+        end_time: this.combineDateTime(eventData.start_date || eventData.event_date, eventData.end_time),
         min_players: eventData.min_players || 1,
-        capacity: eventData.max_players,
-        price: eventData.entry_fee_amount || 0,
+        capacity: eventData.max_players || eventData.capacity,
+        price: eventData.entry_fee_amount || eventData.price || 0,
         entry_fee_type: eventData.entry_fee_type || 'free',
         equipment_required: eventData.equipment_required,
         house_rules: eventData.house_rules,
@@ -71,26 +74,32 @@ class EventService {
       // Get host details
       const host = await db('users').where('id', event.host_id).first();
 
-      // Get attendees
+      // Get attendees — Bug 2 fix: use rsvp_status column
       const attendees = await db('bookings')
         .join('users', 'users.id', 'bookings.user_id')
         .where('event_id', eventId)
-        .where('bookings.status', 'confirmed')
+        .where('bookings.rsvp_status', 'confirmed')
         .select('users.id', 'users.first_name', 'users.profile_picture_url');
 
       // Get reviews
       const reviews = await this.getEventReviews(eventId);
 
+      // Bug 1 fix: Knex returns TIMESTAMP as Date objects, not strings
+      const toDateStr = (val) => (val instanceof Date ? val.toISOString() : String(val));
+      const startIso = toDateStr(event.start_time);
+      const endIso = toDateStr(event.end_time);
+
       return {
         id: event.id,
         host_id: event.host_id,
-        host: {
+        // Bug 3 fix: null guard when host user has been deleted
+        host: host ? {
           id: host.id,
           first_name: host.first_name,
           profile_picture_url: host.profile_picture_url,
           is_verified: host.is_verified,
           reputation_score: parseFloat(host.reputation_score) || 0,
-        },
+        } : null,
         event_type: event.event_type,
         title: event.title,
         description: event.description,
@@ -102,9 +111,9 @@ class EventService {
           address: event.address,
           venue_name: event.venue,
         },
-        event_date: event.start_time.split(' ')[0],
-        start_time: event.start_time.split(' ')[1],
-        end_time: event.end_time.split(' ')[1],
+        event_date: startIso.split('T')[0],
+        start_time: startIso.split('T')[1]?.slice(0, 5),
+        end_time: endIso.split('T')[1]?.slice(0, 5),
         skill_level: event.skill_level,
         min_players: event.min_players,
         max_players: event.capacity,
@@ -136,7 +145,9 @@ class EventService {
    */
   async listEvents(filters) {
     try {
-      let query = db('events').where('status', 'published').where('is_active', true);
+      // Bug 7 fix: use filters.status as the authoritative filter (defaults to 'published')
+      const statusFilter = filters.status || 'published';
+      let query = db('events').where('status', statusFilter).where('is_active', true);
 
       // Apply filters
       if (filters.event_type) {
@@ -145,10 +156,6 @@ class EventService {
 
       if (filters.skill_level) {
         query = query.where('skill_level', filters.skill_level);
-      }
-
-      if (filters.status) {
-        query = query.where('status', filters.status);
       }
 
       if (filters.host_id) {
@@ -202,6 +209,9 @@ class EventService {
       const enrichedEvents = await Promise.all(
         events.map(async (event) => {
           const reviews = await this.getEventReviews(event.id);
+          // Bug 1 fix: safe Date-to-string conversion
+          const toDateStr = (val) => (val instanceof Date ? val.toISOString() : String(val));
+          const startIso = toDateStr(event.start_time);
           return {
             id: event.id,
             host_id: event.host_id,
@@ -214,11 +224,12 @@ class EventService {
               longitude: event.longitude,
               address: event.address,
             },
-            event_date: event.start_time.split(' ')[0],
-            start_time: event.start_time.split(' ')[1],
+            event_date: startIso.split('T')[0],
+            start_time: startIso.split('T')[1]?.slice(0, 5),
             skill_level: event.skill_level,
             max_players: event.capacity,
             entry_fee_amount: parseFloat(event.price),
+            entry_fee_type: event.entry_fee_type,
             status: event.status,
             average_rating: reviews.length > 0
               ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)

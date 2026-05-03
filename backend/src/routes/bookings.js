@@ -11,6 +11,7 @@ const express = require('express');
 const logger = require('../utils/logger');
 const { authMiddleware } = require('../middleware/auth');
 const BookingService = require('../services/BookingService');
+const db = require('../config/database');
 
 const router = express.Router();
 
@@ -41,12 +42,11 @@ router.delete('/events/:event_id/leave', authMiddleware(), async (req, res, next
     const userId = req.user.id;
     logger.info(`DELETE /events/${event_id}/leave`, { user_id: userId });
 
-    // Get user's booking for this event
-    const db = require('../config/database');
+    // Get user's booking for this event — Bug 2 fix: use rsvp_status column
     const booking = await db('bookings')
       .where('user_id', userId)
       .where('event_id', event_id)
-      .where('status', 'confirmed')
+      .where('rsvp_status', 'confirmed')
       .first();
 
     if (!booking) {
