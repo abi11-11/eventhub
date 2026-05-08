@@ -7,7 +7,7 @@ import Constants from 'expo-constants';
  * Automatically includes JWT tokens in Authorization header
  */
 
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
+export const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
 const API_TIMEOUT = parseInt(Constants.expoConfig?.extra?.apiTimeout || process.env.REACT_APP_API_TIMEOUT || '10000', 10);
 
 // Create axios instance with default config
@@ -48,6 +48,15 @@ export const clearAuthTokens = () => {
 };
 
 /**
+ * Register a token refresh handler
+ * Called by Zustand auth store to wire up auto-refresh on 401
+ */
+let _refreshHandler = null;
+export const registerRefreshHandler = (handler) => {
+  _refreshHandler = handler;
+};
+
+/**
  * Request interceptor - add token to all requests
  */
 apiClient.interceptors.request.use(
@@ -62,24 +71,21 @@ apiClient.interceptors.request.use(
 
 /**
  * Response interceptor - handle token refresh on 401
+ * Auto-retries the original request after a successful token refresh
  */
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If we get a 401 and haven't already tried to refresh, attempt refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && _refreshHandler) {
       originalRequest._retry = true;
-
       try {
-        if (refreshToken) {
-          // Call this function from auth store to refresh token
-          // For now, we'll let auth store handle this
-          console.log('⚠️  API Service: Token expired, please login again');
-        }
+        await _refreshHandler();
+        // Token already updated via setAuthTokens — retry original request
+        return apiClient(originalRequest);
       } catch (refreshError) {
-        console.error('❌ API Service: Token refresh fail, user must re-login');
+        console.error('❌ API Service: Token refresh failed, user must re-login');
         return Promise.reject(refreshError);
       }
     }
@@ -119,7 +125,7 @@ export const getUserProfile = async () => {
  */
 export const updateUserProfile = async (profileData) => {
   try {
-    const response = await apiClient.put('/api/users/profile', profileData);
+    const response = await apiClient.put('/api/user/profile', profileData);
     return response.data;
   } catch (error) {
     console.error('❌ API Service: Failed to update profile', error);
@@ -132,10 +138,23 @@ export const updateUserProfile = async (profileData) => {
  */
 export const bookEvent = async (eventId) => {
   try {
-    const response = await apiClient.post(`/api/events/${eventId}/book`);
+    const response = await apiClient.post(`/api/events/${eventId}/join`);
     return response.data;
   } catch (error) {
     console.error('❌ API Service: Failed to book event', error);
+    throw error;
+  }
+};
+
+/**
+ * Cancel an event booking
+ */
+export const cancelBooking = async (eventId) => {
+  try {
+    const response = await apiClient.delete(`/api/events/${eventId}/leave`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ API Service: Failed to cancel booking', error);
     throw error;
   }
 };
@@ -145,7 +164,7 @@ export const bookEvent = async (eventId) => {
  */
 export const getUserBookings = async () => {
   try {
-    const response = await apiClient.get('/api/users/bookings');
+    const response = await apiClient.get('/api/user/bookings');
     return response.data;
   } catch (error) {
     console.error('❌ API Service: Failed to fetch bookings', error);
@@ -158,7 +177,7 @@ export const getUserBookings = async () => {
  */
 export const submitReview = async (eventId, rating, comment) => {
   try {
-    const response = await apiClient.post(`/api/events/${eventId}/review`, {
+    const response = await apiClient.post(`/api/events/${eventId}/reviews`, {
       rating,
       comment,
     });
@@ -173,10 +192,12 @@ export default {
   apiClient,
   setAuthTokens,
   clearAuthTokens,
+  registerRefreshHandler,
   getEvents,
   getUserProfile,
   updateUserProfile,
   bookEvent,
+  cancelBooking,
   getUserBookings,
   submitReview,
 };

@@ -72,7 +72,7 @@ temp/
 *.db
 
 # BMAD System Files (not part of app code)
-
+_bmad/
 /.github/skills/
 /.github/agents/
 /.github/ides/

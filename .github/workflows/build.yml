@@ -55,7 +55,7 @@ jobs:
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,prefix={{branch}}-
+            type=raw,value=main-${{ github.sha }}
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -143,13 +143,17 @@ jobs:
           role-to-assume: arn:aws:iam::385080556067:role/github-actions-eventhub
           aws-region: ap-south-2
 
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
       - name: Update ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: .aws/task-definition.json
           container-name: eventhub-api
-          image: ${{ secrets.AWS_ECR_REGISTRY }}/eventhub-api:main-${{ github.sha }}
+          image: ${{ steps.login-ecr.outputs.registry }}/eventhub-api:main-${{ github.sha }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2

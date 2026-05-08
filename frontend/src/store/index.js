@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setAuthTokens, clearAuthTokens } from '../services/api-service';
+import { setAuthTokens, clearAuthTokens, registerRefreshHandler, API_BASE_URL } from '../services/api-service';
 import firebaseService from '../services/firebase-service';
 
 /**
@@ -327,6 +327,13 @@ export const useUIStore = create((set) => ({
    */
   hideToast: () => set({ toastMessage: null, toastType: null }),
 }));
+
+// Wire Axios 401 interceptor to auto-refresh using the auth store.
+// Uses a callback to avoid circular imports between api-service and store.
+registerRefreshHandler(async () => {
+  const { refreshTokens } = useAuthStore.getState();
+  await refreshTokens(API_BASE_URL);
+});
 
 export default {
   useAuthStore,

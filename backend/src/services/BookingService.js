@@ -37,10 +37,10 @@ class BookingService {
         throw new Error('Already booked this event');
       }
 
-      // Check capacity
+      // Check capacity — Bug 2 fix: column is rsvp_status, not status
       const bookingCount = await db('bookings')
         .where('event_id', eventId)
-        .where('status', 'confirmed')
+        .where('rsvp_status', 'confirmed')
         .count('* as total')
         .first();
 
@@ -48,13 +48,13 @@ class BookingService {
         throw new Error('Event is at full capacity');
       }
 
-      // Create booking
+      // Create booking — Bug 2 fix: column is rsvp_status, not status
       const booking = {
         id: uuidv4(),
         user_id: userId,
         event_id: eventId,
-        status: 'confirmed',
-        price: event.price,
+        rsvp_status: 'confirmed',
+        amount_paid: event.price || 0,
         created_at: new Date(),
         updated_at: new Date(),
       };
@@ -88,8 +88,9 @@ class BookingService {
         throw new Error('Not authorized to cancel this booking');
       }
 
+      // Bug 9 fix: column is rsvp_status, not status
       await db('bookings').where('id', bookingId).update({
-        status: 'cancelled',
+        rsvp_status: 'cancelled',
         updated_at: new Date(),
       });
 
@@ -121,8 +122,8 @@ class BookingService {
         .where('bookings.user_id', userId)
         .select(
           'bookings.id',
-          'bookings.status',
-          'bookings.price',
+          'bookings.rsvp_status',   // Bug 6 fix: correct column name
+          'bookings.amount_paid',   // Bug 6 fix: correct column name (was 'price')
           'bookings.created_at',
           'events.id as event_id',
           'events.title',
@@ -137,14 +138,18 @@ class BookingService {
       return {
         bookings: bookings.map(b => ({
           id: b.id,
-          status: b.status,
-          price: parseFloat(b.price),
+          rsvp_status: b.rsvp_status,          // now correct column
+          amount_paid: parseFloat(b.amount_paid) || 0,
           created_at: b.created_at,
           event: {
             id: b.event_id,
             title: b.title,
             event_type: b.event_type,
-            start_time: b.start_time,
+            event_date: b.start_time
+              ? (b.start_time instanceof Date
+                ? b.start_time.toISOString().split('T')[0]
+                : String(b.start_time).split('T')[0])
+              : null,
             cover_image_url: b.cover_image_url,
           },
         })),
@@ -177,7 +182,7 @@ class BookingService {
       const attendees = await db('bookings')
         .join('users', 'users.id', 'bookings.user_id')
         .where('event_id', eventId)
-        .where('bookings.status', 'confirmed')
+        .where('bookings.rsvp_status', 'confirmed')  // Bug 2 fix: correct column
         .select(
           'bookings.id',
           'users.id as user_id',
@@ -221,8 +226,8 @@ class BookingService {
         id: booking.id,
         user_id: booking.user_id,
         event_id: booking.event_id,
-        status: booking.status,
-        price: parseFloat(booking.price),
+        rsvp_status: booking.rsvp_status,
+        amount_paid: parseFloat(booking.amount_paid) || 0,
         created_at: booking.created_at,
       };
     } catch (error) {

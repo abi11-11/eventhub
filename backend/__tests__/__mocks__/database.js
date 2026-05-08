@@ -74,13 +74,23 @@ class MockQueryBuilder {
 
   first() {
     const table = storage[this.tableName] || new Map();
-    
+    const allRecords = Array.from(table.values());
+
     for (let [key, record] of table) {
       if (this._matchesConditions(record)) {
         return Promise.resolve(record);
       }
     }
-    
+
+    // Debug: log when first() returns null for non-trivial tables
+    if (this.tableName === 'events' && this.whereConditions.length > 0) {
+      console.log(`[MockDB] first() returning null for ${this.tableName}`, {
+        conditions: this.whereConditions,
+        storageKeys: Array.from(table.keys()),
+        storageSize: table.size,
+      });
+    }
+
     return Promise.resolve(null);
   }
 
@@ -111,7 +121,12 @@ class MockQueryBuilder {
 
   _matchesConditions(record) {
     for (let condition of this.whereConditions) {
-      const recordValue = record[condition.column];
+      // Handle table prefixes in column names (e.g., 'bookings.id' -> 'id')
+      let colName = condition.column;
+      if (typeof colName === 'string' && colName.includes('.')) {
+        colName = colName.split('.')[1];
+      }
+      const recordValue = record[colName];
       
       if (condition.operator === '=') {
         if (recordValue !== condition.value) return false;
@@ -211,29 +226,29 @@ class MockQueryBuilder {
     return Promise.resolve(deleted);
   }
 
-  count(columnName = '*') {
+  count(columnExpr = '* as count') {
+    // Parse aliased expressions like '* as total'
+    const aliasParts = columnExpr.split(/\s+as\s+/i);
+    const alias = aliasParts.length > 1 ? aliasParts[1].trim() : columnExpr.trim();
+
     // Return a QueryBuilder-like object that supports .first()
     const countResult = new MockQueryBuilder(this.tableName);
     countResult.whereConditions = [...this.whereConditions];
-    
-    // Add first() method to return count result
-    const originalFirst = countResult.first.bind(countResult);
+
     countResult.first = function() {
       const table = storage[this.tableName] || new Map();
       let total = 0;
-      
+
       for (let [key, record] of table) {
         if (this._matchesConditions(record)) {
           total++;
         }
       }
-      
-      const result = { count: total };
-      result[columnName] = total;
-      return Promise.resolve(result);
+
+      // Return result with both the alias key and a generic 'count' key
+      return Promise.resolve({ [alias]: total, count: total });
     };
-    
-    // Return promise that resolves to count QueryBuilder for chaining
+
     return countResult;
   }
 

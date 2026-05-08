@@ -11,6 +11,8 @@ import SignupScreen from '../screens/SignupScreen';
 import OTPScreen from '../screens/OTPScreen';
 import ProfileSetupScreen from '../screens/ProfileSetupScreen';
 import HomeScreen from '../screens/HomeScreen';
+import BookingsScreen from '../screens/BookingsScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -72,7 +74,7 @@ function AppStack() {
     <Tab.Navigator
       screenOptions={{
         headerShown: true,
-        tabBarActiveTintColor: '#3498db',
+        tabBarActiveTintColor: '#6750A4',
         tabBarInactiveTintColor: '#bdc3c7',
         tabBarStyle: {
           borderTopColor: '#ecf0f1',
@@ -86,14 +88,28 @@ function AppStack() {
         options={{
           title: 'Discover',
           tabBarLabel: 'Discover',
-          tabBarIcon: ({ color }) => <View style={{ color }}>🔍</View>,
+          tabBarIcon: ({ color }) => <View style={{ paddingTop: 2 }}><Text style={{ color, fontSize: 18 }}>🔍</Text></View>,
           headerShown: false,
         }}
       />
-      {/* TODO: Add more tabs
-      <Tab.Screen name="Bookings" component={BookingsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
-      */}
+      <Tab.Screen
+        name="BookingsTab"
+        component={BookingsScreen}
+        options={{
+          title: 'My Bookings',
+          tabBarLabel: 'Bookings',
+          tabBarIcon: ({ color }) => <View style={{ paddingTop: 2 }}><Text style={{ color, fontSize: 18 }}>🎫</Text></View>,
+        }}
+      />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileScreen}
+        options={{
+          title: 'Profile',
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ color }) => <View style={{ paddingTop: 2 }}><Text style={{ color, fontSize: 18 }}>👤</Text></View>,
+        }}
+      />
     </Tab.Navigator>
   );
 }
