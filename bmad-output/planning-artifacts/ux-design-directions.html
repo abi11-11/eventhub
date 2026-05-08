@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventHub Design Direction Showcase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --surface: #0F172A;
+            --on-surface: #F8FAFC;
+            --surface-variant: #1E293B;
+            --on-surface-variant: #94A3B8;
+            --outline: #334155;
+            --primary-volt: #BEF264;
+            --primary-cyan: #22D3EE;
+            --primary-indigo: #4F46E5;
+            --radius-xl: 28px;
+            --radius-lg: 16px;
+            --font-main: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: #020617;
+            color: var(--on-surface);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            padding: 60px 24px;
+            text-align: center;
+            background: linear-gradient(180deg, #0F172A 0%, #020617 100%);
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 40px;
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .direction-card {
+            background: var(--surface-variant);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            border: 1px solid var(--outline);
+            transition: all 0.3s;
+        }
+
+        .direction-card:hover {
+            transform: scale(1.02);
+            border-color: var(--primary-volt);
+        }
+
+        .mockup-preview {
+            width: 100%;
+            aspect-ratio: 9/16;
+            background: #020617;
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            overflow: hidden;
+            position: relative;
+            border: 4px solid #334155;
+        }
+
+        .mockup-content { padding: 12px; }
+
+        /* Mockup 1: Immersive Stream */
+        .immersive .m-card {
+            width: 100%;
+            height: 80%;
+            background-image: url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=400&q=80');
+            background-size: cover;
+            border-radius: 20px;
+            display: flex;
+            align-items: flex-end;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        .immersive .m-text { background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); padding: 12px; border-radius: 12px; width: 100%; }
+
+        /* Mockup 2: Elite Grid */
+        .elite-grid .m-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .elite-grid .m-card-small { background: #1E293B; height: 120px; border-radius: 12px; padding: 8px; font-size: 10px; border-bottom: 3px solid var(--primary-volt); }
+
+        /* Mockup 3: Map Explorer */
+        .map-explorer .m-map { width: 100%; height: 100%; background: #1E293B; position: relative; }
+        .map-explorer .m-pin { width: 24px; height: 24px; background: var(--primary-cyan); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); position: absolute; top: 40%; left: 50%; }
+
+        h2 { font-family: var(--font-main); color: var(--primary-indigo); margin-bottom: 8px; }
+        p { color: var(--on-surface-variant); font-size: 14px; line-height: 1.6; }
+
+        .tag { display: inline-block; padding: 4px 12px; background: #334155; border-radius: 20px; font-size: 11px; font-weight: 700; margin-top: 12px; color: #FFF; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 style="font-family: var(--font-main); font-size: 48px; margin-bottom: 12px;">Design Directions</h1>
+        <p style="font-size: 18px;">6 visual paths to a premium EventHub experience.</p>
+    </header>
+
+    <div class="showcase-grid">
+        <!-- Direction 1 -->
+        <div class="direction-card">
+            <div class="mockup-preview immersive">
+                <div class="mockup-content" style="height:100%">
+                    <div class="m-card">
+                        <div class="m-text">
+                            <div style="font-weight:700">Yoga Flow</div>
+                            <div style="font-size:10px; opacity:0.8">7:00 AM • Park</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h2>1. The Immersive Stream</h2>
+            <p>Focuses on massive, high-quality imagery. Best for "Zen" and lifestyle events where the mood is the primary seller.</p>
+            <div class="tag">MEDIA HEAVY</div>
+        </div>
+
+        <!-- Direction 2 -->
+        <div class="direction-card">
+            <div class="mockup-preview elite-grid">
+                <div class="mockup-content">
+                    <div style="color:var(--primary-volt); font-weight:800; margin-bottom:12px">SPORTS NEAR YOU</div>
+                    <div class="m-grid">
+                        <div class="m-card-small">Football 5v5<br><span style="color:var(--primary-volt)">₹200</span></div>
+                        <div class="m-card-small">Cricket Net<br><span style="color:var(--primary-volt)">₹150</span></div>
+                        <div class="m-card-small">Tennis Dbls<br><span style="color:var(--primary-volt)">₹500</span></div>
+                        <div class="m-card-small">Badminton<br><span style="color:var(--primary-volt)">₹100</span></div>
+                    </div>
+                </div>
+            </div>
+            <h2>2. The Elite Grid</h2>
+            <p>A dense, data-driven approach for serious players. Prioritizes skill level, price, and distance upfront.</p>
+            <div class="tag">DATA FOCUSED</div>
+        </div>
+
+        <!-- Direction 3 -->
+        <div class="direction-card">
+            <div class="mockup-preview map-explorer">
+                <div class="m-map">
+                    <div class="m-pin"></div>
+                    <div class="m-pin" style="top:60%; left:20%; background:var(--primary-volt)"></div>
+                    <div style="position:absolute; bottom:0; width:100%; height:120px; background:linear-gradient(0deg, #0F172A, transparent); padding:20px; box-sizing:border-box">
+                        <div style="background:#1E293B; height:100%; border-radius:16px; border:1px solid var(--primary-cyan)"></div>
+                    </div>
+                </div>
+            </div>
+            <h2>3. Map Explorer</h2>
+            <p>Discovery happens entirely in space. Users browse by location first, perfect for finding immediate games.</p>
+            <div class="tag">LOCATION FIRST</div>
+        </div>
+
+        <!-- Direction 4 -->
+        <div class="direction-card">
+            <div class="mockup-preview">
+                <div class="mockup-content">
+                    <div style="height:40px; background:#1E293B; border-radius:20px; margin-bottom:20px"></div>
+                    <h3 style="font-size:24px; color:var(--primary-cyan)">Your Lobby</h3>
+                    <div style="height:12px; background:var(--primary-cyan); width:75%; border-radius:6px; margin:16px 0"></div>
+                    <div style="height:200px; background:#1E293B; border-radius:12px; border-left:4px solid var(--primary-cyan)"></div>
+                </div>
+            </div>
+            <h2>4. Action Dashboard</h2>
+            <p>Focuses on current commitments. The 'Lobby' and active split-payments are the center of the universe.</p>
+            <div class="tag">UTILITY FOCUSED</div>
+        </div>
+
+        <!-- Direction 5 -->
+        <div class="direction-card">
+            <div class="mockup-preview">
+                <div class="mockup-content" style="padding:32px">
+                    <div style="font-family:var(--font-main); font-size:32px; line-height:1; margin-bottom:24px">The Art of <span style="color:var(--primary-indigo)">Movement</span></div>
+                    <div style="font-size:12px; opacity:0.6; line-height:1.4">A curated collection of the finest yoga and wellness sessions in the city.</div>
+                    <div style="margin-top:40px; border-top:1px solid #334155; padding-top:12px; font-weight:700">7:00 AM • SATURDAY</div>
+                </div>
+            </div>
+            <h2>5. Editorial Collection</h2>
+            <p>High-end typography and white space. Feels like a boutique magazine. Best for premium, expensive events.</p>
+            <div class="tag">PREMIUM FEEL</div>
+        </div>
+
+        <!-- Direction 6 -->
+        <div class="direction-card">
+            <div class="mockup-preview">
+                <div class="mockup-content" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%">
+                    <div style="width:120px; height:120px; border:2px solid var(--primary-volt); border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:48px">⚽</div>
+                    <div style="margin-top:24px; font-weight:800; letter-spacing:4px">NEXT MATCH</div>
+                    <div style="font-size:12px; color:var(--primary-volt)">22:00 • TONIGHT</div>
+                </div>
+            </div>
+            <h2>6. Minimalist Modern</h2>
+            <p>Ultra-clean, zero clutter. Focuses on the single most important next step for the user.</p>
+            <div class="tag">ZERO FRICTION</div>
+        </div>
+    </div>
+
+</body>
+</html>
+

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventHub Final Theme Strategy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Constants */
+            --font-main: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-xl: 28px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --error: #EF4444;
+            --success: #10B981;
+
+            /* Default: Midnight Volt (Dark/Sports) */
+            --surface: #0F172A;
+            --on-surface: #F8FAFC;
+            --surface-variant: #1E293B;
+            --on-surface-variant: #94A3B8;
+            --outline: #334155;
+            --primary: #BEF264;
+            --on-primary: #1A2E05;
+            --primary-container: #365314;
+            --on-primary-container: #D9F99D;
+        }
+
+        /* Mode: Light */
+        .mode-light {
+            --surface: #F8FAFC;
+            --on-surface: #0F172A;
+            --surface-variant: #F1F5F9;
+            --on-surface-variant: #475569;
+            --outline: #CBD5E1;
+        }
+
+        /* Category: Social (Cyan) */
+        .cat-social {
+            --primary: #22D3EE;
+            --on-primary: #083344;
+            --primary-container: #164E63;
+            --on-primary-container: #CFFAFE;
+        }
+
+        /* Adjustments for Light Mode Primary Colors (for better contrast) */
+        .mode-light.cat-sports {
+            --primary: #4D7C0F; /* Darker Lime */
+            --on-primary: #FFFFFF;
+            --primary-container: #D9F99D;
+            --on-primary-container: #1A2E05;
+        }
+
+        .mode-light.cat-social {
+            --primary: #0891B2; /* Darker Cyan */
+            --on-primary: #FFFFFF;
+            --primary-container: #CFFAFE;
+            --on-primary-container: #083344;
+        }
+
+        body {
+            background-color: var(--surface);
+            color: var(--on-surface);
+            font-family: var(--font-body);
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        header {
+            padding: 40px 24px;
+            text-align: center;
+        }
+
+        h1, h2, h3 { font-family: var(--font-main); margin: 0; }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .btn-group { display: flex; gap: 8px; }
+
+        button {
+            padding: 10px 20px;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--outline);
+            background: var(--surface-variant);
+            color: var(--on-surface-variant);
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        button.active {
+            background: var(--primary);
+            color: var(--on-primary);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+
+        .card {
+            background-color: var(--surface-variant);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            transition: transform 0.2s;
+            cursor: pointer;
+            border: 1px solid var(--outline);
+        }
+
+        .card:hover { transform: translateY(-4px); border-color: var(--primary); }
+        .card-img { width: 100%; height: 160px; background-size: cover; background-position: center; position: relative; }
+        .badge {
+            position: absolute; top: 12px; right: 12px; background: var(--primary-container); color: var(--on-primary-container);
+            padding: 4px 12px; border-radius: var(--radius-xl); font-size: 10px; font-weight: 700;
+        }
+        .card-content { padding: 16px; }
+        .card-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .card-meta { font-size: 12px; color: var(--on-surface-variant); }
+
+        .btn-primary {
+            display: block; background-color: var(--primary); color: var(--on-primary); padding: 12px;
+            border-radius: var(--radius-xl); text-decoration: none; font-weight: 600; margin-top: 16px; text-align: center;
+        }
+
+        .lobby-widget {
+            background: var(--surface-variant); padding: 20px; border-radius: var(--radius-xl); margin-top: 40px; border: 1px solid var(--outline);
+        }
+        .progress-container { height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; margin: 12px 0; }
+        .progress-bar { height: 100%; background: var(--primary); width: 75%; }
+        .lobby-status { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body class="cat-sports">
+
+    <header>
+        <h1>EventHub Strategy</h1>
+        <p>Midnight Volt for Sports • Midnight Cyan for Social</p>
+    </header>
+
+    <div class="controls">
+        <div class="btn-group">
+            <button id="btn-sports" class="active" onclick="setCategory('sports')">Sports (Volt)</button>
+            <button id="btn-social" onclick="setCategory('social')">Social (Cyan)</button>
+        </div>
+        <div class="btn-group">
+            <button id="btn-dark" class="active" onclick="setMode('dark')">Dark Mode</button>
+            <button id="btn-light" onclick="setMode('light')">Light Mode</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=400&q=80')">
+                    <div class="badge">Sports</div>
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Midnight 5v5 Football</div>
+                    <div class="card-meta">📅 Today, 11:00 PM • 📍 Urban Arena</div>
+                    <a href="#" class="btn-primary">Join Match</a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=400&q=80')">
+                    <div class="badge">Social</div>
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Catan & Cocktails Night</div>
+                    <div class="card-meta">📅 Saturday, 8:00 PM • <span>📍 The Loft</span></div>
+                    <a href="#" class="btn-primary">Reserve Spot</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="lobby-widget">
+            <h3>Event Lobby</h3>
+            <div class="progress-container"><div class="progress-bar"></div></div>
+            <div class="lobby-status">
+                <span>3/4 Paid</span>
+                <span style="color: var(--primary)">08:42 Remaining</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'dark';
+        let currentCat = 'sports';
+
+        function updateClasses() {
+            document.body.className = `mode-${currentMode} cat-${currentCat}`;
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${currentCat}`).classList.add('active');
+            document.getElementById(`btn-${currentMode}`).classList.add('active');
+        }
+
+        function setMode(m) { currentMode = m; updateClasses(); }
+        function setCategory(c) { currentCat = c; updateClasses(); }
+    </script>
+</body>
+</html>
